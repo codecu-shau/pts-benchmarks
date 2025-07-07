@@ -2,11 +2,11 @@
 set -euo pipefail
 
 BENCHMARKS=(
-"compress-pbzip2-1.2.0"
-"simdjson-3.13.0"
-"ngspice-44.2"
+"compress-pbzip2-1.6.1"
+"simdjson-2.1.0"
+"ngspice-1.0.0"
 "draco-1.6.1"
-"aom-av1_3.7.1"
+"aom-av1_3.12.0"
 )
 
 TARGET_FREQ=2400000
@@ -29,8 +29,9 @@ for test in "${BENCHMARKS[@]}"; do
     phoronix-test-suite install "$test"
 done
 
-echo "batch-setup cu răspunsuri presetate și salvare ca 'deterministic-suite'..."
-cat <<EOF | phoronix-test-suite batch-setup
+for test in "${BENCHMARKS[@]}"; do
+    echo "Batch setup pentru $test..."
+    cat <<EOF | phoronix-test-suite batch-setup
 Y
 N
 Y
@@ -38,18 +39,12 @@ N
 N
 N
 Y
-deterministic-suite
 EOF
-
-echo "rulare automată..."
-export PHORONIX_TEST_SUITE_AUTO_YES=1
-export PHORONIX_TEST_SUITE_BATCH_MODE=1
-export PHORONIX_TEST_SUITE_BATCH_UPLOAD_RESULTS=1
-
-echo "Rulez batch 'deterministic-suite'..."
-phoronix-test-suite batch-run local/deterministic-suite
+    echo "Rulare benchmark $test..."
+    phoronix-test-suite batch-run "$test"
+done
 
 echo "Copiere toate rezultatele în $RESULTS_DIR"
 cp -r "$HOME/.phoronix-test-suite/test-results/"* "$RESULTS_DIR/"
 
-echo "Procesul s-a încheiat. Rezultatele sunt în $RESULT_DIR"
+echo "Procesul s-a încheiat. Rezultatele sunt în $RESULTS_DIR"
